@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth } from "@/lib/firebase";
 import {
@@ -15,12 +15,14 @@ export default function LoginPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // prevents double popup calls
+  const signingIn = useRef(false);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
 
-      // if already logged in → send to dashboard
       if (u) {
         router.push("/dashboard");
       }
@@ -31,7 +33,11 @@ export default function LoginPage() {
 
   const signIn = async () => {
     try {
+      if (signingIn.current) return; // block double clicks
+      signingIn.current = true;
+
       const provider = new GoogleAuthProvider();
+
       const result = await signInWithPopup(auth, provider);
 
       console.log("LOGIN SUCCESS:", result.user);
@@ -39,9 +45,12 @@ export default function LoginPage() {
       router.push("/dashboard");
     } catch (error: any) {
       console.log("ERROR CODE:", error.code);
-      console.log("ERROR MESSAGE:", error.message);
+
+      if (error.code === "auth/cancelled-popup-request") return;
 
       alert(error.code || "Login failed");
+    } finally {
+      signingIn.current = false;
     }
   };
 
