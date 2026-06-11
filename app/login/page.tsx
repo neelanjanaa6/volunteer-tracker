@@ -7,20 +7,20 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   onAuthStateChanged,
-  signOut,
-  User
+  User,
 } from "firebase/auth";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
 
+      // if already logged in → send to dashboard
       if (u) {
         router.push("/dashboard");
       }
@@ -32,75 +32,45 @@ export default function LoginPage() {
   const signIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    } catch (err) {
-      console.log(err);
-      alert("Login failed");
-    }
-  };
+      const result = await signInWithPopup(auth, provider);
 
-  const logout = async () => {
-    await signOut(auth);
-    setUser(null);
+      console.log("LOGIN SUCCESS:", result.user);
+
+      router.push("/dashboard");
+    } catch (error: any) {
+      console.log("ERROR CODE:", error.code);
+      console.log("ERROR MESSAGE:", error.message);
+
+      alert(error.code || "Login failed");
+    }
   };
 
   if (loading) {
     return (
-      <main className="flex items-center justify-center min-h-screen bg-black text-white">
-        <p>Loading...</p>
+      <main className="min-h-screen flex items-center justify-center bg-black text-white">
+        Loading...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-black relative overflow-hidden">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-black text-white gap-6">
+      <h1 className="text-4xl font-bold text-fuchsia-500">
+        Volunteer Tracker
+      </h1>
 
-      {/* background glow */}
-      <div className="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-black to-pink-600/20" />
+      <p className="text-gray-400 text-center max-w-md">
+        Sign in to track your volunteer hours and stay organized.
+      </p>
 
-      <div className="relative z-10 w-full max-w-md p-8 rounded-2xl border border-fuchsia-500/30 bg-black/60 backdrop-blur-xl shadow-2xl">
-
-        <h1 className="text-3xl font-bold text-center text-white">
-          Volunteer Tracker
-        </h1>
-
-        <p className="text-center text-gray-400 mt-2 mb-6">
-          Track your impact. Build your future.
-        </p>
-
-        {!user ? (
-          <button
-            onClick={signIn}
-            className="w-full py-3 rounded-xl font-semibold text-white
-            bg-gradient-to-r from-fuchsia-600 to-pink-600
-            hover:from-fuchsia-500 hover:to-pink-500
-            transition"
-          >
-            Sign in with Google
-          </button>
-        ) : (
-          <div className="text-center space-y-3">
-            <p className="text-white">
-              Logged in as <span className="font-semibold">{user.displayName}</span>
-            </p>
-
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="w-full py-2 rounded-lg bg-white text-black font-medium"
-            >
-              Go to Dashboard
-            </button>
-
-            <button
-              onClick={logout}
-              className="w-full py-2 rounded-lg text-red-400 hover:text-red-300"
-            >
-              Logout
-            </button>
-          </div>
-        )}
-
-      </div>
+      {!user && (
+        <button
+          onClick={signIn}
+          className="bg-fuchsia-600 hover:bg-fuchsia-500 px-6 py-3 rounded-lg font-semibold"
+        >
+          Sign in with Google
+        </button>
+      )}
     </main>
   );
 }
