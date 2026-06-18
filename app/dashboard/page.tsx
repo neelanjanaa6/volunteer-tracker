@@ -68,10 +68,10 @@ export default function DashboardPage() {
       ? `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`
       : `${new Date().getFullYear() - 1}-${new Date().getFullYear()}`;
 
-  const totalHours = entries
-    .filter((e) => e.schoolYear === currentSchoolYear)
-    .reduce((sum, e) => sum + e.hours, 0);
-
+  const totalHours = entries.reduce(
+    (sum, e) => sum + Number(e.hours || 0),
+    0
+  );
   const deleteEntry = async (id: string) => {
     await deleteDoc(doc(db, "volunteerEntries", id));
     setEntries(entries.filter((e) => e.id !== id));

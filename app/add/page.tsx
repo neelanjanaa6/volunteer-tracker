@@ -16,22 +16,59 @@ export default function AddPage() {
 
   const submit = async () => {
     const user = auth.currentUser;
-    if (!user) return alert("Login first");
+    if (!user) return alert("Please log in first");
 
-    await addVolunteerEntry(
-      user.uid,
-      organization,
-      Number(hours),
-      date,
-      description
-    );
+    const numHours = parseFloat(hours);
 
-    router.push("/dashboard");
+    // REQUIRED FIELDS
+    if (!organization || !hours || !date) {
+      return alert("Please fill all required fields");
+    }
+
+    // VALID NUMBER CHECK
+    if (!Number.isFinite(numHours)) {
+      return alert("Hours must be a valid number");
+    }
+
+    // RANGE CHECK
+    if (numHours <= 0) {
+      return alert("Hours must be greater than 0");
+    }
+
+    if (numHours > 24) {
+      alert("You cannot log more than 24 hours in one entry");
+      return;
+    }
+
+    // FUTURE DATE BLOCK
+    const selectedDate = new Date(date);
+    const today = new Date();
+
+    selectedDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate > today) {
+      return alert("You cannot log future dates");
+    }
+
+    try {
+      await addVolunteerEntry(
+        user.uid,
+        organization.trim(),
+        numHours,
+        date,
+        description.trim()
+      );
+
+      router.push("/dashboard");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save entry");
+    }
   };
 
   return (
     <main className="min-h-screen bg-black text-white p-6">
-
       <Navbar />
 
       <h1 className="text-3xl font-bold mb-6 text-fuchsia-400">
@@ -71,7 +108,7 @@ export default function AddPage() {
 
         <button
           onClick={submit}
-          className="w-full py-3 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 transition"
+          className="w-full py-3 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500"
         >
           Save Entry
         </button>

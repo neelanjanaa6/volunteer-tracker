@@ -45,6 +45,7 @@ export default function LoginPage() {
       router.push("/dashboard");
     } catch (error: any) {
       console.log("ERROR CODE:", error.code);
+      console.log("ERROR MESSAGE:", error.message);
 
       if (error.code === "auth/cancelled-popup-request") return;
 

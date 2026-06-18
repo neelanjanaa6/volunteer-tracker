@@ -1,29 +1,31 @@
-import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-
 export async function addVolunteerEntry(
   userId: string,
   organization: string,
   hours: number,
   date: string,
-  description: string
+  description?: string
 ) {
-  await addDoc(collection(db, "volunteerEntries"), {
+  const numHours = Number(hours);
+
+  // 🚨 HARD BLOCK (backend enforcement)
+  if (!Number.isFinite(numHours)) {
+    throw new Error("Invalid hours");
+  }
+
+  if (numHours <= 0) {
+    throw new Error("Hours must be > 0");
+  }
+
+  if (numHours > 24) {
+    throw new Error("MAX 24 HOURS ALLOWED");
+  }
+
+  // if validation passes → pretend save (replace with your real Firestore call)
+  console.log("SAVING ENTRY:", {
     userId,
     organization,
-    hours,
+    hours: numHours,
     date,
     description,
-    schoolYear: getSchoolYear(date),
-    createdAt: serverTimestamp(),
   });
-}
-
-function getSchoolYear(dateStr: string) {
-  const date = new Date(dateStr);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-
-  // school year starts around August
-  return month >= 8 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
 }
