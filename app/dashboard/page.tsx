@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
 import {
@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // AUTH LISTENER
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -37,6 +38,7 @@ export default function DashboardPage() {
     return () => unsub();
   }, []);
 
+  // FETCH DATA
   useEffect(() => {
     const fetchData = async () => {
       if (!user) return;
@@ -63,20 +65,30 @@ export default function DashboardPage() {
     fetchData();
   }, [user]);
 
-  const currentSchoolYear =
-    new Date().getMonth() + 1 >= 8
-      ? `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`
-      : `${new Date().getFullYear() - 1}-${new Date().getFullYear()}`;
+  // SCHOOL YEAR (kept for future use)
+  const currentSchoolYear = useMemo(() => {
+    const year = new Date().getFullYear();
+    const month = new Date().getMonth() + 1;
 
-  const totalHours = entries.reduce(
-    (sum, e) => sum + Number(e.hours || 0),
-    0
-  );
+    return month >= 8
+      ? `${year}-${year + 1}`
+      : `${year - 1}-${year}`;
+  }, []);
+
+  // TOTAL HOURS (SAFE)
+  const totalHours = useMemo(() => {
+    return entries.reduce((sum, e) => {
+      return sum + Number(e.hours || 0);
+    }, 0);
+  }, [entries]);
+
+  // DELETE ENTRY
   const deleteEntry = async (id: string) => {
     await deleteDoc(doc(db, "volunteerEntries", id));
-    setEntries(entries.filter((e) => e.id !== id));
+    setEntries((prev) => prev.filter((e) => e.id !== id));
   };
 
+  // AUTH GUARD
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -85,6 +97,7 @@ export default function DashboardPage() {
     );
   }
 
+  // LOADING STATE
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-400">
@@ -99,33 +112,60 @@ export default function DashboardPage() {
 
         <Navbar />
 
+        {/* HEADER */}
         <h1 className="text-3xl font-bold mb-6">
-          Welcome, <span className="text-fuchsia-500">
+          Welcome,{" "}
+          <span className="text-fuchsia-500">
             {user.displayName}
           </span>
         </h1>
 
-        <div className="mb-8">
-          <div className="inline-block p-5 rounded-2xl border border-fuchsia-500/40 bg-fuchsia-500/10">
-            <p className="text-sm text-gray-400">
-              Total Hours This Year
-            </p>
-            <p className="text-3xl font-bold text-fuchsia-400">
+        {/* STATS */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+
+          <div className="p-4 bg-fuchsia-500/10 border border-fuchsia-500/30 rounded-xl">
+            <p className="text-sm text-gray-400">Total Hours</p>
+            <p className="text-2xl font-bold text-fuchsia-400">
               {totalHours}
             </p>
           </div>
+
+          <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
+            <p className="text-sm text-gray-400">Entries</p>
+            <p className="text-2xl font-bold">
+              {entries.length}
+            </p>
+          </div>
+
+          <div className="p-4 bg-white/5 border border-white/10 rounded-xl">
+            <p className="text-sm text-gray-400">Organizations</p>
+            <p className="text-2xl font-bold">
+              {new Set(entries.map((e) => e.organization)).size}
+            </p>
+          </div>
+
         </div>
 
+        {/* ENTRIES LIST */}
         <div className="space-y-4">
+
           {entries.map((e) => (
             <div
               key={e.id}
-              className="p-4 rounded-xl border border-white/10 bg-white/5 flex justify-between"
+              className="p-4 rounded-xl border border-white/10 bg-white/5 flex justify-between items-center hover:bg-white/10 transition"
             >
               <div>
-                <p className="font-semibold">{e.organization}</p>
-                <p className="text-sm text-gray-400">{e.date}</p>
-                <p className="text-fuchsia-400">{e.hours} hours</p>
+                <p className="font-semibold">
+                  {e.organization}
+                </p>
+
+                <p className="text-sm text-gray-400">
+                  {e.date}
+                </p>
+
+                <p className="text-fuchsia-400">
+                  {e.hours} hours
+                </p>
               </div>
 
               <button
@@ -136,6 +176,7 @@ export default function DashboardPage() {
               </button>
             </div>
           ))}
+
         </div>
 
       </main>
