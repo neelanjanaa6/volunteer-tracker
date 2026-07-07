@@ -11,7 +11,6 @@ import {
   where,
 } from "firebase/firestore";
 
-
 type Entry = {
   id: string;
   organization: string;
@@ -56,10 +55,12 @@ export default function ReportPage() {
     return () => unsubscribe();
   }, []);
 
+
   const totalHours = entries.reduce(
     (sum, entry) => sum + Number(entry.hours || 0),
     0
   );
+
 
   const downloadPDF = async () => {
     if (!reportRef.current) return;
@@ -67,29 +68,30 @@ export default function ReportPage() {
     const html2pdf = (await import("html2pdf.js")).default as any;
 
     const options = {
-        margin: 0.5,
-        filename: "Volunteer_Hours_Report.pdf",
-        image: {
-            type: "jpeg",
-            quality: 0.98,
-        },
-        html2canvas: {
-            scale: 2,
-            backgroundColor: "#5a024e",
-            useCORS: true,
-        },
-        jsPDF: {
-            unit: "in",
-            format: "letter",
-            orientation: "portrait",
-        },
+      margin: 0.5,
+      filename: "Volunteer_Hours_Report.pdf",
+      image: {
+        type: "jpeg",
+        quality: 0.98,
+      },
+      html2canvas: {
+        scale: 2,
+        backgroundColor: "#1a0b16",
+        useCORS: true,
+      },
+      jsPDF: {
+        unit: "in",
+        format: "letter",
+        orientation: "portrait",
+      },
     };
 
+
     html2pdf()
-        .set(options)
-        .from(reportRef.current)
-        .save();
-};
+      .set(options)
+      .from(reportRef.current)
+      .save();
+  };
 
 
   if (loading) {
@@ -113,60 +115,74 @@ export default function ReportPage() {
   return (
     <main
       style={{
-        backgroundColor: "#f3f4f6",
+        backgroundColor: "#f5f3f5",
       }}
       className="min-h-screen p-8"
     >
 
       <div className="max-w-5xl mx-auto">
 
+
         <button
           onClick={downloadPDF}
           style={{
-            backgroundColor: "#c026d3",
-            color: "white",
+            backgroundColor: "#d8a1c4",
+            color: "#000000",
           }}
-          className="mb-6 px-6 py-3 rounded-lg font-semibold"
+          className="mb-6 px-6 py-3 rounded-lg font-bold"
         >
           Download PDF
         </button>
 
 
+
         <div
           ref={reportRef}
           style={{
-            backgroundColor: "#ffffff",
-            color: "#000000",
+            backgroundColor: "#f1e8f1",
+            color: "#ffffff",
             padding: "40px",
           }}
         >
 
-          <h1
-            style={{
-              fontSize: "32px",
-              fontWeight: "bold",
-              marginBottom: "10px",
-            }}
-          >
-            Volunteer Hours Report
-          </h1>
 
-
-          <p
+          <div
             style={{
-              color: "#666666",
+              textAlign: "center",
               marginBottom: "30px",
             }}
           >
-            Generated on {new Date().toLocaleDateString()}
-          </p>
+
+            <h1
+              style={{
+                fontSize: "36px",
+                fontWeight: "bold",
+                color: "#743e60",
+              }}
+            >
+              Volunteer Tracker
+            </h1>
+
+
+            <p
+              style={{
+                color: "#501745",
+              }}
+            >
+              Official Volunteer Hours Report
+            </p>
+
+          </div>
+
+
 
 
           <section
             style={{
-              border: "1px solid #cccccc",
+              border: "1px solid #6b3b59",
               padding: "20px",
               marginBottom: "30px",
+              borderRadius: "50px",
             }}
           >
 
@@ -174,36 +190,48 @@ export default function ReportPage() {
               style={{
                 fontSize: "22px",
                 fontWeight: "bold",
+                color: "#5e1744",
                 marginBottom: "15px",
               }}
             >
               Student Information
             </h2>
 
-            <p>
+
+            <p style={{ color: "#38082d" }}>
               <b>Name:</b> {user.displayName}
             </p>
 
-            <p>
+
+            <p style={{ color: "#38082d" }}>
               <b>Email:</b> {user.email}
             </p>
 
-            <p>
+
+            <p style={{ color: "#38082d" }}>
               <b>Total Volunteer Hours:</b> {totalHours}
             </p>
 
+
           </section>
+
+
+
 
 
           <h2
             style={{
               fontSize: "22px",
               fontWeight: "bold",
+              color: "#41102f",
               marginBottom: "15px",
             }}
           >
             Volunteer Entries
           </h2>
+
+
+
 
 
           <table
@@ -213,6 +241,7 @@ export default function ReportPage() {
             }}
           >
 
+
             <thead>
 
               <tr>
@@ -221,13 +250,16 @@ export default function ReportPage() {
                   Date
                 </th>
 
+
                 <th style={tableHeader}>
                   Organization
                 </th>
 
+
                 <th style={tableHeader}>
                   Hours
                 </th>
+
 
                 <th style={tableHeader}>
                   Description
@@ -236,6 +268,7 @@ export default function ReportPage() {
               </tr>
 
             </thead>
+
 
 
             <tbody>
@@ -248,13 +281,16 @@ export default function ReportPage() {
                     {entry.date}
                   </td>
 
+
                   <td style={tableCell}>
                     {entry.organization}
                   </td>
 
+
                   <td style={tableCell}>
                     {entry.hours}
                   </td>
+
 
                   <td style={tableCell}>
                     {entry.description || "-"}
@@ -266,38 +302,50 @@ export default function ReportPage() {
 
             </tbody>
 
+
           </table>
+
+
+
 
 
           <p
             style={{
               marginTop: "40px",
-              color: "#666666",
+              color: "#bbbbbb",
               fontSize: "12px",
+              textAlign: "center",
             }}
           >
-            This report was generated from Volunteer Tracker.
+            Generated by Volunteer Tracker
           </p>
+
 
 
         </div>
 
+
       </div>
+
 
     </main>
   );
 }
 
 
+
 const tableHeader = {
-  border: "1px solid #cccccc",
-  padding: "10px",
+  border: "1px solid #d8a1c4",
+  padding: "12px",
   textAlign: "left" as const,
-  backgroundColor: "#eeeeee",
+  backgroundColor: "#d8a1c4",
+  color: "#000000",
+  fontWeight: "bold",
 };
 
 
 const tableCell = {
-  border: "1px solid #cccccc",
-  padding: "10px",
+  border: "1px solid #6b3b59",
+  padding: "12px",
+  color: "#0b0202",
 };
