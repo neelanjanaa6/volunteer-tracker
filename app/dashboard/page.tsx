@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User } from "firebase/auth";
@@ -25,10 +25,11 @@ type Entry = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
-
+  
   // AUTH LISTENER
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -144,6 +145,14 @@ export default function DashboardPage() {
             </p>
           </div>
 
+        </div>
+        <div className="mb-8">
+          <button
+            onClick={() => router.push("/report")}
+            className="bg-fuchsia-600 hover:bg-fuchsia-500 px-6 py-3 rounded-lg font-semibold transition"
+          >
+            📄 Generate Report
+          </button>
         </div>
 
         {/* ENTRIES LIST */}
